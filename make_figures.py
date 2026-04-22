@@ -29,32 +29,38 @@ def load_all(tag="main"):
 def plot_trajectories(summary, data, savepath, num_steps=5000):
     P_list = summary["P_list"]
     n_rows = len(P_list)
-    fig = plt.figure(figsize=(14, 3.8 * n_rows))
+    # generous per-panel size + consistent viewing angle + equal 3-D box
+    fig = plt.figure(figsize=(16, 5.2 * n_rows))
+    elev, azim = 26, -72
+
+    def _draw(ax, orb, color, title):
+        orb = np.asarray(orb)
+        ax.plot(orb[:, 0], orb[:, 1], orb[:, 2], color=color, lw=0.9, alpha=0.95)
+        ax.set_title(title, fontsize=13)
+        ax.view_init(elev=elev, azim=azim)
+        rng = float(max(np.ptp(orb[:, 0]), np.ptp(orb[:, 1]), np.ptp(orb[:, 2])))
+        cx, cy, cz = orb[:, 0].mean(), orb[:, 1].mean(), orb[:, 2].mean()
+        ax.set_xlim(cx - rng / 2 - 0.5, cx + rng / 2 + 0.5)
+        ax.set_ylim(cy - rng / 2 - 0.5, cy + rng / 2 + 0.5)
+        ax.set_zlim(cz - rng / 2 - 0.5, cz + rng / 2 + 0.5)
+        ax.set_xticks([]); ax.set_yticks([]); ax.set_zticks([])
+
     for i, P in enumerate(P_list):
         d = data[P]
         truth = d["X_test_trans"][:num_steps]
         orbit_o = d["orbit_orig"][:num_steps]
         orbit_r = d["orbit_ortho"][:num_steps]
-
-        ax = fig.add_subplot(n_rows, 3, 3 * i + 1, projection="3d")
-        ax.plot(truth[:, 0], truth[:, 1], truth[:, 2], lw=0.5, color="black", alpha=0.8)
-        ax.set_title(f"Ground truth   (P={P})")
-        ax.set_axis_off()
-
-        ax = fig.add_subplot(n_rows, 3, 3 * i + 2, projection="3d")
-        ax.plot(orbit_o[:, 0], orbit_o[:, 1], orbit_o[:, 2], lw=0.5, color="#c0392b", alpha=0.8)
-        ax.set_title(f"Vanilla AL-RNN   (P={P})")
-        ax.set_axis_off()
-
-        ax = fig.add_subplot(n_rows, 3, 3 * i + 3, projection="3d")
-        ax.plot(orbit_r[:, 0], orbit_r[:, 1], orbit_r[:, 2], lw=0.5, color="#2c5fb0", alpha=0.8)
-        ax.set_title(f"Orthogonal AL-RNN   (P={P})")
-        ax.set_axis_off()
+        _draw(fig.add_subplot(n_rows, 3, 3 * i + 1, projection="3d"),
+              truth, "black", f"Ground truth  (P={P})")
+        _draw(fig.add_subplot(n_rows, 3, 3 * i + 2, projection="3d"),
+              orbit_o, "#c0392b", f"Vanilla AL-RNN  (P={P})")
+        _draw(fig.add_subplot(n_rows, 3, 3 * i + 3, projection="3d"),
+              orbit_r, "#2c5fb0", f"Orthogonal AL-RNN  (P={P})")
 
     fig.suptitle("Free-run Lorenz reconstruction: truth vs vanilla vs orthogonal, P sweep",
-                 fontsize=14, fontweight="bold")
+                 fontsize=16, fontweight="bold")
     fig.tight_layout()
-    fig.savefig(savepath, dpi=140)
+    fig.savefig(savepath, dpi=150)
     plt.close(fig)
 
 
@@ -231,9 +237,38 @@ def write_report(summary, data, savepath):
     print("\n".join(lines))
 
 
+def plot_trajectories_2d(summary, data, savepath, num_steps=5000):
+    """2D projections per P, much more legible than a single 3D angle."""
+    P_list = summary["P_list"]
+    n_rows = len(P_list)
+    labels = ["x", "y", "z"]
+    pairs = [(0, 1), (0, 2), (1, 2)]
+    # per-P: 3 panels wide (truth/vanilla/ortho) x 3 projections = 9 panels per P
+    fig, axes = plt.subplots(n_rows, 9, figsize=(22, 2.6 * n_rows))
+    for r, P in enumerate(P_list):
+        d = data[P]
+        srcs = [(d["X_test_trans"][:num_steps], "black", "truth"),
+                (d["orbit_orig"][:num_steps], "#c0392b", "vanilla"),
+                (d["orbit_ortho"][:num_steps], "#2c5fb0", "ortho")]
+        col = 0
+        for orb, color, name in srcs:
+            for i, j in pairs:
+                ax = axes[r, col]
+                ax.plot(orb[:, i], orb[:, j], color=color, lw=0.5, alpha=0.9)
+                ax.set_title(f"P={P}  {name}  {labels[i]}-{labels[j]}", fontsize=9)
+                ax.set_aspect("equal", adjustable="datalim")
+                ax.tick_params(labelsize=7)
+                col += 1
+    fig.suptitle("Free-run Lorenz reconstruction - 2D projections", fontsize=15, fontweight="bold")
+    fig.tight_layout(rect=[0, 0, 1, 0.98])
+    fig.savefig(savepath, dpi=130)
+    plt.close(fig)
+
+
 def main():
     summary, data = load_all("main")
     plot_trajectories(summary, data, os.path.join(OUT, "trajectories.png"))
+    plot_trajectories_2d(summary, data, os.path.join(OUT, "trajectories_2d.png"))
     plot_losses(summary, data, os.path.join(OUT, "losses.png"))
     plot_q_analysis(summary, os.path.join(OUT, "q_analysis.png"))
     write_report(summary, data, os.path.join(OUT, "report.txt"))
