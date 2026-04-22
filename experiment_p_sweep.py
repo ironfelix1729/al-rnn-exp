@@ -182,7 +182,8 @@ def train_fast(model, dataset, optimizer, scheduler, loss_fn, num_epochs,
 
 
 def train_model_on_data(model_class, data, M, P, num_epochs, batch_size=64,
-                        device="cpu", tag="", B_shared=None, freeze_B=False):
+                        device="cpu", tag="", B_shared=None, freeze_B=False,
+                        alpha=1.0, n_interleave=16):
     dataset = TimeSeriesDataset(data, sequence_length=128, batch_size=batch_size)
     model = model_class(M=M, P=P, N=data.shape[-1],
                         B_shared=B_shared, freeze_B=freeze_B).to(device)
@@ -193,7 +194,7 @@ def train_model_on_data(model_class, data, M, P, num_epochs, batch_size=64,
         optimizer, gamma=np.exp(np.log(1e-5 / 1e-3) / num_epochs)
     )
     losses = train_fast(model, dataset, optimizer, scheduler, nn.MSELoss(),
-                        num_epochs, 1.0, 16, batches_per_epoch=20,
+                        num_epochs, alpha, n_interleave, batches_per_epoch=20,
                         device=device, tag=tag)
     return model, losses
 
@@ -305,6 +306,10 @@ def main():
                         help="use one B matrix in all 10 runs")
     parser.add_argument("--freeze_B", action="store_true",
                         help="if --share_B, also freeze B (requires_grad=False)")
+    parser.add_argument("--alpha", type=float, default=1.0,
+                        help="generalized teacher-forcing blend (1.0 = hard reset)")
+    parser.add_argument("--n_interleave", type=int, default=16,
+                        help="step period between teacher-forcing injections")
     args = parser.parse_args()
 
     np.random.seed(args.seed)
@@ -338,6 +343,8 @@ def main():
         "P_list": args.P_list,
         "share_B": bool(args.share_B),
         "freeze_B": bool(args.freeze_B),
+        "alpha": float(args.alpha),
+        "n_interleave": int(args.n_interleave),
         "per_P": {},
     }
 
@@ -350,6 +357,7 @@ def main():
             AL_RNN_Original, X_train_trans, M=args.M, P=P,
             num_epochs=args.epochs, device=DEVICE, tag=f"P={P}/orig",
             B_shared=shared_B, freeze_B=args.freeze_B,
+            alpha=args.alpha, n_interleave=args.n_interleave,
         )
         dt_orig = time.time() - t0
 
@@ -358,6 +366,7 @@ def main():
             AL_RNN_Orthogonal, X_train_trans, M=args.M, P=P,
             num_epochs=args.epochs, device=DEVICE, tag=f"P={P}/ortho",
             B_shared=shared_B, freeze_B=args.freeze_B,
+            alpha=args.alpha, n_interleave=args.n_interleave,
         )
         dt_ortho = time.time() - t0
 
