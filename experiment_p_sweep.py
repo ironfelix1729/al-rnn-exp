@@ -368,11 +368,12 @@ def main():
         w_orig = weight_summary(model_orig, "vanilla")
         w_ortho = weight_summary(model_ortho, "orthogonal")
 
-        # persist
-        torch.save(model_orig.state_dict(), os.path.join(OUT_DIR, f"model_orig_P{P}.pt"))
-        torch.save(model_ortho.state_dict(), os.path.join(OUT_DIR, f"model_ortho_P{P}.pt"))
+        # persist  (tag paths so runs with different M/tag do not clobber each other)
+        suffix = f"_{args.tag}" if args.tag and args.tag != "main" else ""
+        torch.save(model_orig.state_dict(), os.path.join(OUT_DIR, f"model_orig_P{P}{suffix}.pt"))
+        torch.save(model_ortho.state_dict(), os.path.join(OUT_DIR, f"model_ortho_P{P}{suffix}.pt"))
         np.savez(
-            os.path.join(OUT_DIR, f"P{P}_arrays.npz"),
+            os.path.join(OUT_DIR, f"P{P}{suffix}_arrays.npz"),
             losses_orig=np.asarray(losses_orig),
             losses_ortho=np.asarray(losses_ortho),
             orbit_orig=orbit_orig,
