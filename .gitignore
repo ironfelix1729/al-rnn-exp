@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+results_p_sweep/*.pt
+results_p_sweep/*.npz
