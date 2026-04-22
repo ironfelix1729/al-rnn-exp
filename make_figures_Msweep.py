@@ -67,6 +67,37 @@ def plot_trajectories_2d(savepath, num_steps=5000):
     plt.close(fig)
 
 
+def plot_trajectories_3d(savepath, num_steps=5000, elev=25, azim=-60):
+    from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
+    rows = len(M_LIST) * len(P_LIST)
+    fig = plt.figure(figsize=(11, 3.3 * rows))
+    r = 0
+    for M in M_LIST:
+        _, data = load_M(M)
+        for P in P_LIST:
+            d = data[P]
+            triples = [(d["X_test_trans"][:num_steps], "black", f"Ground truth M={M} P={P}"),
+                       (d["orbit_orig"][:num_steps], "#c0392b", f"Vanilla M={M} P={P}"),
+                       (d["orbit_ortho"][:num_steps], "#2c5fb0", f"Orthogonal M={M} P={P}")]
+            for c, (orb, color, title) in enumerate(triples):
+                ax = fig.add_subplot(rows, 3, r * 3 + c + 1, projection="3d")
+                orb = np.asarray(orb)
+                ax.plot(orb[:, 0], orb[:, 1], orb[:, 2], color=color, lw=0.6, alpha=0.95)
+                ax.set_title(title, fontsize=10)
+                ax.view_init(elev=elev, azim=azim)
+                rng = float(max(np.ptp(orb[:, 0]), np.ptp(orb[:, 1]), np.ptp(orb[:, 2])))
+                cx, cy, cz = orb[:, 0].mean(), orb[:, 1].mean(), orb[:, 2].mean()
+                ax.set_xlim(cx - rng / 2 - .3, cx + rng / 2 + .3)
+                ax.set_ylim(cy - rng / 2 - .3, cy + rng / 2 + .3)
+                ax.set_zlim(cz - rng / 2 - .3, cz + rng / 2 + .3)
+                ax.set_xticks([]); ax.set_yticks([]); ax.set_zticks([])
+            r += 1
+    fig.suptitle("M-sweep: free-run Lorenz reconstruction - 3D views", fontsize=14, fontweight="bold")
+    fig.tight_layout(rect=[0, 0, 1, 0.98])
+    fig.savefig(savepath, dpi=120)
+    plt.close(fig)
+
+
 def plot_losses(savepath):
     fig, axes = plt.subplots(1, len(M_LIST), figsize=(16, 4.5), sharey=True)
     for ax, M in zip(axes, M_LIST):
@@ -187,11 +218,15 @@ def main():
     plot_q_analysis(os.path.join(OUT, "Msweep_q_analysis.png"))
     write_report(os.path.join(OUT, "Msweep_report.txt"))
 
+    plot_trajectories_3d(os.path.join(OUT, "Msweep_trajectories_3d.png"))
+
     # stitch PDF
     pdf_path = os.path.join(OUT, "Msweep_report.pdf")
     with PdfPages(pdf_path) as pdf:
         for png in ["Msweep_gap.png", "Msweep_losses.png",
-                    "Msweep_q_analysis.png", "Msweep_trajectories_2d.png"]:
+                    "Msweep_q_analysis.png",
+                    "Msweep_trajectories_3d.png",
+                    "Msweep_trajectories_2d.png"]:
             img = plt.imread(os.path.join(OUT, png))
             fig = plt.figure(figsize=(8.5, 11))
             ax = fig.add_axes([0.02, 0.02, 0.96, 0.96])
