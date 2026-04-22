@@ -11,3 +11,5 @@ results_p_sweep/summary_sharedB.json
 results_p_sweep/run_M*.log
 results_p_sweep/run_M*_driver.log
 results_p_sweep/run_M_sweep_driver.log
+results_p_sweep/summary_M5.json
+results_p_sweep/summary_M10.json
