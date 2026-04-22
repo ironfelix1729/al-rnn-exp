@@ -2,6 +2,8 @@ __pycache__/
 *.pyc
 results_p_sweep/*.pt
 results_p_sweep/*.npz
+!results_p_sweep/*_M[0-9]*_arrays.npz
+!results_p_sweep/*_M[0-9]*.pt
 results_p_sweep/run.log
 results_p_sweep/summary_main.json
 results_p_sweep/run_sharedB.log
