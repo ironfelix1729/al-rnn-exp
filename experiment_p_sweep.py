@@ -44,13 +44,19 @@ def apply_rotation(X, Q):
 
 # --- Models ------------------------------------------------------------------
 class AL_RNN_Original(nn.Module):
-    def __init__(self, M, P, N):
+    def __init__(self, M, P, N, B_shared=None, freeze_B=False):
         super().__init__()
         self.M, self.P, self.N = M, P, N
         self.A = nn.Parameter(self._init_A())
         self.W = nn.Parameter(torch.randn(M, M) * 0.01)
         self.h = nn.Parameter(torch.zeros(M))
-        self.B = nn.Parameter(self._init_uniform((N, M)))
+        if B_shared is None:
+            self.B = nn.Parameter(self._init_uniform((N, M)))
+        else:
+            assert B_shared.shape == (N, M), f"expected B_shared shape {(N, M)}, got {tuple(B_shared.shape)}"
+            self.B = nn.Parameter(B_shared.detach().clone())
+            if freeze_B:
+                self.B.requires_grad_(False)
         self._W_T = None  # per-sequence cache
 
     def _init_A(self):
@@ -76,13 +82,19 @@ class AL_RNN_Original(nn.Module):
 
 
 class AL_RNN_Orthogonal(nn.Module):
-    def __init__(self, M, P, N):
+    def __init__(self, M, P, N, B_shared=None, freeze_B=False):
         super().__init__()
         self.M, self.P, self.N = M, P, N
         self.A = nn.Parameter(self._init_A())
         self.W = nn.Parameter(torch.randn(M, M) * 0.01)
         self.h = nn.Parameter(torch.zeros(M))
-        self.B = nn.Parameter(self._init_uniform((N, M)))
+        if B_shared is None:
+            self.B = nn.Parameter(self._init_uniform((N, M)))
+        else:
+            assert B_shared.shape == (N, M), f"expected B_shared shape {(N, M)}, got {tuple(B_shared.shape)}"
+            self.B = nn.Parameter(B_shared.detach().clone())
+            if freeze_B:
+                self.B.requires_grad_(False)
         self.transform = nn.Linear(M, M)
         torch.nn.utils.parametrizations.orthogonal(self.transform)
         self._W_T = None
@@ -169,10 +181,14 @@ def train_fast(model, dataset, optimizer, scheduler, loss_fn, num_epochs,
     return losses
 
 
-def train_model_on_data(model_class, data, M, P, num_epochs, batch_size=64, device="cpu", tag=""):
+def train_model_on_data(model_class, data, M, P, num_epochs, batch_size=64,
+                        device="cpu", tag="", B_shared=None, freeze_B=False):
     dataset = TimeSeriesDataset(data, sequence_length=128, batch_size=batch_size)
-    model = model_class(M=M, P=P, N=data.shape[-1]).to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+    model = model_class(M=M, P=P, N=data.shape[-1],
+                        B_shared=B_shared, freeze_B=freeze_B).to(device)
+    # only optimise params that require grad (B may be frozen)
+    trainable = [p for p in model.parameters() if p.requires_grad]
+    optimizer = torch.optim.Adam(trainable, lr=1e-3)
     scheduler = torch.optim.lr_scheduler.ExponentialLR(
         optimizer, gamma=np.exp(np.log(1e-5 / 1e-3) / num_epochs)
     )
@@ -285,6 +301,10 @@ def main():
     parser.add_argument("--T_gen", type=int, default=5000)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--tag", type=str, default="main")
+    parser.add_argument("--share_B", action="store_true",
+                        help="use one B matrix in all 10 runs")
+    parser.add_argument("--freeze_B", action="store_true",
+                        help="if --share_B, also freeze B (requires_grad=False)")
     args = parser.parse_args()
 
     np.random.seed(args.seed)
@@ -301,10 +321,23 @@ def main():
     # save the dataset rotation for the record
     np.save(os.path.join(OUT_DIR, f"Q_dataset_{args.tag}.npy"), Q_dataset)
 
+    # optionally build a single B used by every run in the sweep
+    shared_B = None
+    if args.share_B:
+        g = torch.Generator().manual_seed(args.seed + 12345)
+        r = 1.0 / math.sqrt(N)
+        shared_B = torch.empty(N, args.M).uniform_(-r, r, generator=g)
+        np.save(os.path.join(OUT_DIR, f"shared_B_{args.tag}.npy"),
+                shared_B.numpy())
+        print(f"Shared B: shape={tuple(shared_B.shape)}  frozen={args.freeze_B}  "
+              f"||B||_F={float(shared_B.norm()):.3f}", flush=True)
+
     summary = {
         "epochs": args.epochs,
         "M": args.M,
         "P_list": args.P_list,
+        "share_B": bool(args.share_B),
+        "freeze_B": bool(args.freeze_B),
         "per_P": {},
     }
 
@@ -315,14 +348,16 @@ def main():
         t0 = time.time()
         model_orig, losses_orig = train_model_on_data(
             AL_RNN_Original, X_train_trans, M=args.M, P=P,
-            num_epochs=args.epochs, device=DEVICE, tag=f"P={P}/orig"
+            num_epochs=args.epochs, device=DEVICE, tag=f"P={P}/orig",
+            B_shared=shared_B, freeze_B=args.freeze_B,
         )
         dt_orig = time.time() - t0
 
         t0 = time.time()
         model_ortho, losses_ortho = train_model_on_data(
             AL_RNN_Orthogonal, X_train_trans, M=args.M, P=P,
-            num_epochs=args.epochs, device=DEVICE, tag=f"P={P}/ortho"
+            num_epochs=args.epochs, device=DEVICE, tag=f"P={P}/ortho",
+            B_shared=shared_B, freeze_B=args.freeze_B,
         )
         dt_ortho = time.time() - t0
 

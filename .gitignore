@@ -4,3 +4,5 @@ results_p_sweep/*.pt
 results_p_sweep/*.npz
 results_p_sweep/run.log
 results_p_sweep/summary_main.json
+results_p_sweep/run_sharedB.log
+results_p_sweep/summary_sharedB.json
