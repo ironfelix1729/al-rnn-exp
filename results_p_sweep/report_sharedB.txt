@@ -1,0 +1,42 @@
+========================================================================
+P-sweep: vanilla vs orthogonal AL-RNN on rotated Lorenz63
+epochs=1500  M=20  P values=[2, 3, 4, 5, 6]
+========================================================================
+
+Random-20x20-orthogonal baseline (mean over 200 samples):
+  ||Q - I||_F          : 6.33 +- 0.15
+  perm residual        : 3.88
+  mean row participation: 13.06 +- 0.34   (1=perm, M=20=uniform)
+
+------------------------------------------------------------------------
+  P            final_loss              min_loss           train_s
+          orig/    ortho       orig/    ortho     orig/  ortho
+------------------------------------------------------------------------
+  2    0.02227/  0.02097    0.02137/  0.02044    535.6/  662.2
+  3    0.01335/  0.01333    0.01305/  0.01278    539.6/  766.7
+  4    0.01181/  0.01022    0.01139/  0.00973    576.8/  714.0
+  5    0.00875/  0.00759    0.00841/  0.00732    550.5/  695.3
+  6    0.00852/  0.00714    0.00822/  0.00688    566.3/  687.5
+
+Q (learned orthogonal transform) structural diagnostics by P:
+------------------------------------------------------------------------
+  P   ||Q-I||_F   perm_res   ortho_err  sv_spread  mean_part  complex_pairs  real_+-1     det
+  2       6.275      4.014    1.69e-06   5.36e-07     14.156              9         2   -1.00
+  3       6.461      3.952    1.71e-06   7.15e-07     13.208             10         0    1.00
+  4       6.270      3.990    2.15e-06   7.75e-07     14.243              9         2   -1.00
+  5       6.472      4.039    1.32e-06   4.77e-07     13.888             10         0    1.00
+  6       6.509      3.923    1.61e-06   7.15e-07     13.520             10         0    1.00
+
+Interpretation key:
+  ortho_err ~ 0             -> Q satisfies the orthogonality constraint
+  det = +/- 1               -> rotation (det=+1) or rotoreflection (det=-1)
+  ||Q - I||_F near baseline -> Q is a nontrivial transform, not the identity
+  mean_part >> 1            -> Q mixes many coordinates (not a permutation)
+  complex eigenpairs        -> genuine 2-plane rotations in Q
+
+Conclusion (auto):
+  P=2: mixes 14.2 coords/row; 9 genuine rotation plane(s)
+  P=3: mixes 13.2 coords/row; 10 genuine rotation plane(s)
+  P=4: mixes 14.2 coords/row; 9 genuine rotation plane(s)
+  P=5: mixes 13.9 coords/row; 10 genuine rotation plane(s)
+  P=6: mixes 13.5 coords/row; 10 genuine rotation plane(s)

@@ -13,8 +13,8 @@ from matplotlib.backends.backend_pdf import PdfPages
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results_p_sweep")
 
 
-def load_all():
-    with open(os.path.join(OUT, "summary_main.json")) as f:
+def load_all(tag="main"):
+    with open(os.path.join(OUT, f"summary_{tag}.json")) as f:
         summary = json.load(f)
     data = {}
     for P in summary["P_list"]:
@@ -202,8 +202,14 @@ def add_q_summary_page(pdf, summary):
 
 
 def main():
-    summary, data = load_all()
-    pdf_path = os.path.join(OUT, "report.pdf")
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--tag", default="main")
+    args = ap.parse_args()
+    tag = args.tag
+    suffix = "" if tag == "main" else f"_{tag}"
+    summary, data = load_all(tag)
+    pdf_path = os.path.join(OUT, f"report{suffix}.pdf")
     with PdfPages(pdf_path) as pdf:
         add_title_page(pdf, summary)
         add_loss_page(pdf, summary, data)

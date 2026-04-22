@@ -266,12 +266,18 @@ def plot_trajectories_2d(summary, data, savepath, num_steps=5000):
 
 
 def main():
-    summary, data = load_all("main")
-    plot_trajectories(summary, data, os.path.join(OUT, "trajectories.png"))
-    plot_trajectories_2d(summary, data, os.path.join(OUT, "trajectories_2d.png"))
-    plot_losses(summary, data, os.path.join(OUT, "losses.png"))
-    plot_q_analysis(summary, os.path.join(OUT, "q_analysis.png"))
-    write_report(summary, data, os.path.join(OUT, "report.txt"))
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--tag", default="main")
+    args = ap.parse_args()
+    tag = args.tag
+    suffix = "" if tag == "main" else f"_{tag}"
+    summary, data = load_all(tag)
+    plot_trajectories(summary, data, os.path.join(OUT, f"trajectories{suffix}.png"))
+    plot_trajectories_2d(summary, data, os.path.join(OUT, f"trajectories_2d{suffix}.png"))
+    plot_losses(summary, data, os.path.join(OUT, f"losses{suffix}.png"))
+    plot_q_analysis(summary, os.path.join(OUT, f"q_analysis{suffix}.png"))
+    write_report(summary, data, os.path.join(OUT, f"report{suffix}.txt"))
     print("\nFigures written to", OUT)
 
 
