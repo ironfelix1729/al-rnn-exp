@@ -1,0 +1,20 @@
+Symbolic-code diagnostics (M=5 P=3, free-run 5000 steps)
+================================================================
+Symbol alphabet size:   2^P = 8
+Shannon entropy (bits): vanilla = 1.593,  ortho = 0.079   (log2(8) = 3.0)
+
+Distinct symbols visited:  vanilla = 5 / 8   ortho = 2 / 8
+
+Most common symbol transitions (vanilla):
+   100  ->  100   count=2035
+   111  ->  111   count=1907
+   110  ->  110   count=726
+   100  ->  110   count=77
+   101  ->  100   count=77
+   111  ->  101   count=77
+
+Most common symbol transitions (ortho):
+   011  ->  011   count=4948
+   111  ->  111   count=47
+   011  ->  111   count=2
+   111  ->  011   count=2
