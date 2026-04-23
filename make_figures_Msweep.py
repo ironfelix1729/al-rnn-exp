@@ -23,17 +23,19 @@ from matplotlib.backends.backend_pdf import PdfPages
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results_p_sweep")
 M_LIST = [4, 5, 10]
 P_LIST = [2, 3, 4]
+SUFFIX = ""  # set by main()
+
+
+def _tag(M):
+    return f"M{M}{SUFFIX}"
 
 
 def load_M(M):
-    with open(os.path.join(OUT, f"summary_M{M}.json")) as f:
+    with open(os.path.join(OUT, f"summary_{_tag(M)}.json")) as f:
         summary = json.load(f)
     data = {}
     for P in summary["P_list"]:
-        path = os.path.join(OUT, f"P{P}_M{M}_arrays.npz")
-        if not os.path.exists(path):  # M=4 uses bare names (rescued copies had _M4 suffix)
-            path = os.path.join(OUT, f"P{P}_M{M}_arrays.npz")
-        arrs = np.load(path)
+        arrs = np.load(os.path.join(OUT, f"P{P}_{_tag(M)}_arrays.npz"))
         data[P] = {k: arrs[k] for k in arrs.files}
     return summary, data
 
@@ -206,27 +208,37 @@ def write_report(savepath):
 
 
 def main():
-    have_all = all(os.path.exists(os.path.join(OUT, f"summary_M{M}.json")) for M in M_LIST)
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--suffix", default="",
+                    help="tag suffix like '_a0p5' (empty = alpha=1.0 run)")
+    ap.add_argument("--label", default="Msweep",
+                    help="output filename prefix (default Msweep)")
+    args = ap.parse_args()
+    global SUFFIX
+    SUFFIX = args.suffix
+    prefix = args.label
+
+    have_all = all(os.path.exists(os.path.join(OUT, f"summary_M{M}{SUFFIX}.json")) for M in M_LIST)
     if not have_all:
-        present = [M for M in M_LIST if os.path.exists(os.path.join(OUT, f"summary_M{M}.json"))]
-        print(f"Only have summaries for M={present}; run M-sweep for the rest first.")
+        present = [M for M in M_LIST if os.path.exists(os.path.join(OUT, f"summary_M{M}{SUFFIX}.json"))]
+        print(f"Only have summaries for M={present}; need all three before drawing figures.")
         return
 
-    plot_trajectories_2d(os.path.join(OUT, "Msweep_trajectories_2d.png"))
-    plot_losses(os.path.join(OUT, "Msweep_losses.png"))
-    plot_gap(os.path.join(OUT, "Msweep_gap.png"))
-    plot_q_analysis(os.path.join(OUT, "Msweep_q_analysis.png"))
-    write_report(os.path.join(OUT, "Msweep_report.txt"))
+    plot_trajectories_2d(os.path.join(OUT, f"{prefix}_trajectories_2d.png"))
+    plot_losses(os.path.join(OUT, f"{prefix}_losses.png"))
+    plot_gap(os.path.join(OUT, f"{prefix}_gap.png"))
+    plot_q_analysis(os.path.join(OUT, f"{prefix}_q_analysis.png"))
+    write_report(os.path.join(OUT, f"{prefix}_report.txt"))
 
-    plot_trajectories_3d(os.path.join(OUT, "Msweep_trajectories_3d.png"))
+    plot_trajectories_3d(os.path.join(OUT, f"{prefix}_trajectories_3d.png"))
 
-    # stitch PDF
-    pdf_path = os.path.join(OUT, "Msweep_report.pdf")
+    pdf_path = os.path.join(OUT, f"{prefix}_report.pdf")
     with PdfPages(pdf_path) as pdf:
-        for png in ["Msweep_gap.png", "Msweep_losses.png",
-                    "Msweep_q_analysis.png",
-                    "Msweep_trajectories_3d.png",
-                    "Msweep_trajectories_2d.png"]:
+        for png in [f"{prefix}_gap.png", f"{prefix}_losses.png",
+                    f"{prefix}_q_analysis.png",
+                    f"{prefix}_trajectories_3d.png",
+                    f"{prefix}_trajectories_2d.png"]:
             img = plt.imread(os.path.join(OUT, png))
             fig = plt.figure(figsize=(8.5, 11))
             ax = fig.add_axes([0.02, 0.02, 0.96, 0.96])

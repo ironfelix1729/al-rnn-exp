@@ -1,0 +1,28 @@
+================================================================================
+M-sweep: vanilla vs orthogonal AL-RNN, shared frozen B per M
+  M  in [4, 5, 10]    P in [2, 3, 4]    epochs=1500    N=3 (Lorenz)
+================================================================================
+
+--- M = 4 ---
+    P     vanilla       ortho     rel_gap   Q rot planes   ||Q-I||_F  det  
+    2     0.19693     0.06630      -66.3%              1       2.141  -1.00
+    3     0.14647     0.07161      -51.1%              2       2.775  +1.00
+    4     0.11400     0.05908      -48.2%              2       2.670  +1.00
+
+--- M = 5 ---
+    P     vanilla       ortho     rel_gap   Q rot planes   ||Q-I||_F  det  
+    2     0.07774     0.06063      -22.0%              2       3.458  -1.00
+    3     0.06913     0.04633      -33.0%              2       3.526  +1.00
+    4     0.08191     0.04453      -45.6%              2       3.229  -1.00
+
+--- M = 10 ---
+    P     vanilla       ortho     rel_gap   Q rot planes   ||Q-I||_F  det  
+    2     0.03808     0.03412      -10.4%              5       4.080  +1.00
+    3     0.03701     0.03024      -18.3%              5       4.193  +1.00
+    4     0.02796     0.01934      -30.8%              5       4.248  +1.00
+
+Interpretation
+--------------
+With M=20 (lots of slack) the ortho edge is small (5-16 %).  Shrinking M to 4
+removes the slack dimensions: every hidden dim matters for the dynamics, W's
+gauge redundancy with Q shrinks, and the ortho edge grows sharply.
