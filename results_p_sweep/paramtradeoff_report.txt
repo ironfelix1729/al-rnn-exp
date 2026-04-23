@@ -1,0 +1,64 @@
+==============================================================================================================
+Final MSE and trainable-parameter count across sweeps
+(B is frozen in all M-sweeps: A + W + h  for vanilla; + Q (orthog) + b_Q for ortho)
+==============================================================================================================
+    alpha    family     M    P         mse    params
+--------------------------------------------------------------------------------------------------------------
+alpha=0.5     ortho     4    2     0.06630        34
+alpha=0.5     ortho     4    3     0.07161        34
+alpha=0.5     ortho     4    4     0.05908        34
+alpha=0.5     ortho     5    2     0.06063        50
+alpha=0.5     ortho     5    3     0.04633        50
+alpha=0.5     ortho     5    4     0.04453        50
+alpha=0.5     ortho    10    2     0.03412       175
+alpha=0.5     ortho    10    3     0.03024       175
+alpha=0.5     ortho    10    4     0.01934       175
+alpha=0.5   vanilla     4    2     0.19693        24
+alpha=0.5   vanilla     4    3     0.14647        24
+alpha=0.5   vanilla     4    4     0.11400        24
+alpha=0.5   vanilla     5    2     0.07774        35
+alpha=0.5   vanilla     5    3     0.06913        35
+alpha=0.5   vanilla     5    4     0.08191        35
+alpha=0.5   vanilla    10    2     0.03808       120
+alpha=0.5   vanilla    10    3     0.03701       120
+alpha=0.5   vanilla    10    4     0.02796       120
+alpha=1.0     ortho     4    2     0.04066        34
+alpha=1.0     ortho     4    3     0.02909        34
+alpha=1.0     ortho     4    4     0.02365        34
+alpha=1.0     ortho     5    2     0.03528        50
+alpha=1.0     ortho     5    3     0.02303        50
+alpha=1.0     ortho     5    4     0.01639        50
+alpha=1.0     ortho    10    2     0.02724       175
+alpha=1.0     ortho    10    3     0.01565       175
+alpha=1.0     ortho    10    4     0.01157       175
+alpha=1.0     ortho    20    2     0.02097       650
+alpha=1.0     ortho    20    3     0.01333       650
+alpha=1.0     ortho    20    4     0.01022       650
+alpha=1.0   vanilla     4    2     0.13837        24
+alpha=1.0   vanilla     4    3     0.10565        24
+alpha=1.0   vanilla     4    4     0.04720        24
+alpha=1.0   vanilla     5    2     0.04279        35
+alpha=1.0   vanilla     5    3     0.03089        35
+alpha=1.0   vanilla     5    4     0.06233        35
+alpha=1.0   vanilla    10    2     0.02704       120
+alpha=1.0   vanilla    10    3     0.01878       120
+alpha=1.0   vanilla    10    4     0.01543       120
+alpha=1.0   vanilla    20    2     0.02227       440
+alpha=1.0   vanilla    20    3     0.01335       440
+alpha=1.0   vanilla    20    4     0.01181       440
+
+==============================================================================================================
+Matched pairs: ortho (small M) ~ vanilla (bigger M) within 15 % MSE
+==============================================================================================================
+    alpha    P  ortho M  ortho mse ortho params   vanilla M  vanilla mse vanilla params    param ratio   mse ratio
+--------------------------------------------------------------------------------------------------------------
+alpha=0.5    2        4    0.06630           34           5      0.06913             35          0.97x       0.96x
+alpha=0.5    3        4    0.07161           34           5      0.07774             35          0.97x       0.92x
+alpha=0.5    4        5    0.04453           50          10      0.03808            120          0.42x       1.17x
+alpha=1.0    2        4    0.04066           34           5      0.04279             35          0.97x       0.95x
+alpha=1.0    3        4    0.02909           34           5      0.03089             35          0.97x       0.94x
+alpha=1.0    3        5    0.02303           50          20      0.02227            440          0.11x       1.03x
+alpha=1.0    3       10    0.01565          175          20      0.01335            440          0.40x       1.17x
+alpha=1.0    4        4    0.02365           34          10      0.02704            120          0.28x       0.87x
+alpha=1.0    4        5    0.01639           50          10      0.01878            120          0.42x       0.87x
+alpha=1.0    4       10    0.01157          175          20      0.01181            440          0.40x       0.98x
