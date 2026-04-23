@@ -337,15 +337,29 @@ def main():
         print(f"Shared B: shape={tuple(shared_B.shape)}  frozen={args.freeze_B}  "
               f"||B||_F={float(shared_B.norm()):.3f}", flush=True)
 
+    summary_path = os.path.join(OUT_DIR, f"summary_{args.tag}.json")
+    # Resume support: if a summary exists for this tag, preserve its per-P
+    # entries (P values not in args.P_list) and merge in the fresh ones.
+    preserved_per_P = {}
+    if os.path.exists(summary_path):
+        try:
+            with open(summary_path) as f:
+                prev = json.load(f)
+            for k, v in prev.get("per_P", {}).items():
+                if int(k) not in args.P_list:
+                    preserved_per_P[k] = v
+        except Exception as e:
+            print(f"warning: could not merge existing summary: {e}")
+
     summary = {
         "epochs": args.epochs,
         "M": args.M,
-        "P_list": args.P_list,
+        "P_list": sorted(set(list(args.P_list) + [int(k) for k in preserved_per_P])),
         "share_B": bool(args.share_B),
         "freeze_B": bool(args.freeze_B),
         "alpha": float(args.alpha),
         "n_interleave": int(args.n_interleave),
-        "per_P": {},
+        "per_P": dict(preserved_per_P),
     }
 
     t_start = time.time()
