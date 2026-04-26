@@ -312,20 +312,28 @@ def main():
                         help="step period between teacher-forcing injections")
     parser.add_argument("--out_dir", type=str, default=None,
                         help="override OUT_DIR (default results_p_sweep)")
+    parser.add_argument("--seed_data", type=int, default=None,
+                        help="seed for Q_dataset rotation (defaults to --seed)")
+    parser.add_argument("--seed_B", type=int, default=None,
+                        help="seed for shared B (defaults to --seed + 12345)")
     args = parser.parse_args()
     global OUT_DIR
     if args.out_dir:
         OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), args.out_dir)
         os.makedirs(OUT_DIR, exist_ok=True)
 
+    import random as _random
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
+    _random.seed(args.seed)
+    seed_data = args.seed_data if args.seed_data is not None else args.seed
+    seed_B = args.seed_B if args.seed_B is not None else (args.seed + 12345)
 
     X_train = np.load("lorenz63_train.npy").astype(np.float32)[500:]
     X_test = np.load("lorenz63_test.npy").astype(np.float32)[500:]
     N = X_train.shape[1]
 
-    Q_dataset = random_orthogonal_matrix(N, seed=args.seed)
+    Q_dataset = random_orthogonal_matrix(N, seed=seed_data)
     X_train_trans = apply_rotation(X_train, Q_dataset)
     X_test_trans = apply_rotation(X_test, Q_dataset)
 
@@ -335,7 +343,7 @@ def main():
     # optionally build a single B used by every run in the sweep
     shared_B = None
     if args.share_B:
-        g = torch.Generator().manual_seed(args.seed + 12345)
+        g = torch.Generator().manual_seed(seed_B)
         r = 1.0 / math.sqrt(N)
         shared_B = torch.empty(N, args.M).uniform_(-r, r, generator=g)
         np.save(os.path.join(OUT_DIR, f"shared_B_{args.tag}.npy"),

@@ -62,6 +62,23 @@ def state_space_divergence_binning(x_gen, x_true, n_bins=30):
     return kullback_leibler_divergence(p_true, p_gen).item()
 
 
+def state_space_hellinger_binning(x_gen, x_true, n_bins=30):
+    """Hellinger distance between true and generated 3-D state-space densities,
+    using the same binning + Laplace smoothing as state_space_divergence_binning.
+
+    D_H = sqrt(1 - sum sqrt(p_true * p_gen))   in [0, 1].
+    """
+    min_, max_ = x_true.min(0).values, x_true.max(0).values
+    hist_gen = calc_histogram(x_gen, n_bins=n_bins, min_=min_, max_=max_)
+    hist_true = calc_histogram(x_true, n_bins=n_bins, min_=min_, max_=max_)
+    p_gen = normalize_to_pdf_with_laplace_smoothing(histogram=hist_gen, n_bins=n_bins)
+    p_true = normalize_to_pdf_with_laplace_smoothing(histogram=hist_true, n_bins=n_bins)
+    if p_gen is None or p_true is None:
+        return float("nan")
+    bhatt = (p_true.flatten() * p_gen.flatten()).sqrt().sum().item()
+    return float(np.sqrt(max(0.0, 1.0 - bhatt)))
+
+
 def compute_and_smooth_power_spectrum(x, smoothing):
     x_ = (x - x.mean()) / x.std()
     fft_real = np.fft.rfft(x_)
