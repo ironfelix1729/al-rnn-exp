@@ -310,7 +310,13 @@ def main():
                         help="generalized teacher-forcing blend (1.0 = hard reset)")
     parser.add_argument("--n_interleave", type=int, default=16,
                         help="step period between teacher-forcing injections")
+    parser.add_argument("--out_dir", type=str, default=None,
+                        help="override OUT_DIR (default results_p_sweep)")
     args = parser.parse_args()
+    global OUT_DIR
+    if args.out_dir:
+        OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), args.out_dir)
+        os.makedirs(OUT_DIR, exist_ok=True)
 
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
