@@ -8,6 +8,11 @@ results_p_sweep/run.log
 results_p_sweep/summary_main.json
 results_p_sweep/run_sharedB.log
 results_p_sweep/summary_sharedB.json
+results_p_sweep/run_*.log
+results_M_finescan/run_*.log
+results_M_finescan/driver.log
+results_seedrun/run_*.log
+results_seedrun/driver.log
 results_M_finescan/run_M*.log
 results_M_finescan/driver.log
 results_M_finescan/*.pt
