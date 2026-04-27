@@ -575,3 +575,7 @@ Shared B: shape=(3, 10)  frozen=True  ||B||_F=1.803
 
 ================  P = 3  ================
 [P=3/orig] epoch    0/1000  loss=0.981805  elapsed=0.6s
+[P=3/orig] epoch  100/1000  loss=0.028991  elapsed=40.6s
+[P=3/orig] epoch  200/1000  loss=0.026134  elapsed=79.2s
+[P=3/orig] epoch  300/1000  loss=0.024490  elapsed=118.1s
+[P=3/orig] epoch  400/1000  loss=0.023899  elapsed=159.0s
