@@ -18,8 +18,8 @@
       "final_loss_ortho": 0.02446080045774579,
       "min_loss_orig": 0.02562501495704055,
       "min_loss_ortho": 0.0236626829020679,
-      "train_seconds_orig": 370.1633207798004,
-      "train_seconds_ortho": 461.44722175598145,
+      "train_seconds_orig": 414.8960545063019,
+      "train_seconds_ortho": 559.567227602005,
       "Q_analysis": {
         "M": 15,
         "orthogonality_error_frob": 1.4741285779434774e-06,
