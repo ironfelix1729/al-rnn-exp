@@ -82,7 +82,7 @@ class AL_RNN_Original(nn.Module):
 
 
 class AL_RNN_Orthogonal(nn.Module):
-    def __init__(self, M, P, N, B_shared=None, freeze_B=False):
+    def __init__(self, M, P, N, B_shared=None, freeze_B=False, no_bias_Q=False):
         super().__init__()
         self.M, self.P, self.N = M, P, N
         self.A = nn.Parameter(self._init_A())
@@ -95,7 +95,7 @@ class AL_RNN_Orthogonal(nn.Module):
             self.B = nn.Parameter(B_shared.detach().clone())
             if freeze_B:
                 self.B.requires_grad_(False)
-        self.transform = nn.Linear(M, M)
+        self.transform = nn.Linear(M, M, bias=not no_bias_Q)
         torch.nn.utils.parametrizations.orthogonal(self.transform)
         self._W_T = None
         self._Q_T = None
@@ -116,14 +116,16 @@ class AL_RNN_Orthogonal(nn.Module):
         self._W_T = self.W.t()
         Q = self.transform.weight
         self._Q_T = Q.t()
-        self._qb = self.transform.bias
+        self._qb = self.transform.bias  # may be None
 
     def forward(self, z):
         if self._Q_T is None:
             z_trans = self.transform(z)
             W_T = self.W.t()
         else:
-            z_trans = z @ self._Q_T + self._qb
+            z_trans = z @ self._Q_T
+            if self._qb is not None:
+                z_trans = z_trans + self._qb
             W_T = self._W_T
         P = self.P
         if P > 0:
@@ -183,10 +185,15 @@ def train_fast(model, dataset, optimizer, scheduler, loss_fn, num_epochs,
 
 def train_model_on_data(model_class, data, M, P, num_epochs, batch_size=64,
                         device="cpu", tag="", B_shared=None, freeze_B=False,
-                        alpha=1.0, n_interleave=16):
+                        alpha=1.0, n_interleave=16, no_bias_Q=False):
     dataset = TimeSeriesDataset(data, sequence_length=128, batch_size=batch_size)
-    model = model_class(M=M, P=P, N=data.shape[-1],
-                        B_shared=B_shared, freeze_B=freeze_B).to(device)
+    if model_class is AL_RNN_Orthogonal:
+        model = model_class(M=M, P=P, N=data.shape[-1],
+                            B_shared=B_shared, freeze_B=freeze_B,
+                            no_bias_Q=no_bias_Q).to(device)
+    else:
+        model = model_class(M=M, P=P, N=data.shape[-1],
+                            B_shared=B_shared, freeze_B=freeze_B).to(device)
     # only optimise params that require grad (B may be frozen)
     trainable = [p for p in model.parameters() if p.requires_grad]
     optimizer = torch.optim.Adam(trainable, lr=1e-3)
@@ -316,6 +323,14 @@ def main():
                         help="seed for Q_dataset rotation (defaults to --seed)")
     parser.add_argument("--seed_B", type=int, default=None,
                         help="seed for shared B (defaults to --seed + 12345)")
+    parser.add_argument("--no_bias_Q", action="store_true",
+                        help="ortho model: drop the bias inside the ReLU (z' = Q z, not Q z + b)")
+    parser.add_argument("--B_full_dim", type=int, default=0,
+                        help="if > 0: build a single (N, B_full_dim) shared B and use B[:, :M]"
+                             " as this run's frozen B (Option A: cross-M consistency).")
+    parser.add_argument("--B_full_path", type=str, default=None,
+                        help="path to a pre-saved (N, B_full_dim) numpy array; if provided,"
+                             " load instead of regenerating")
     args = parser.parse_args()
     global OUT_DIR
     if args.out_dir:
@@ -343,13 +358,35 @@ def main():
     # optionally build a single B used by every run in the sweep
     shared_B = None
     if args.share_B:
-        g = torch.Generator().manual_seed(seed_B)
-        r = 1.0 / math.sqrt(N)
-        shared_B = torch.empty(N, args.M).uniform_(-r, r, generator=g)
-        np.save(os.path.join(OUT_DIR, f"shared_B_{args.tag}.npy"),
-                shared_B.numpy())
-        print(f"Shared B: shape={tuple(shared_B.shape)}  frozen={args.freeze_B}  "
-              f"||B||_F={float(shared_B.norm()):.3f}", flush=True)
+        if args.B_full_dim > 0:
+            # Option A: one (N, B_full_dim) master B for all M; this run uses B[:, :M].
+            assert args.M <= args.B_full_dim, \
+                f"--M ({args.M}) must be <= --B_full_dim ({args.B_full_dim})"
+            r = 1.0 / math.sqrt(N)
+            B_full_path = args.B_full_path or os.path.join(
+                OUT_DIR, f"shared_B_full_dim{args.B_full_dim}_seed{seed_B}.npy")
+            if os.path.exists(B_full_path):
+                B_full = torch.from_numpy(np.load(B_full_path).astype(np.float32))
+                assert B_full.shape == (N, args.B_full_dim), \
+                    f"B_full at {B_full_path} has shape {tuple(B_full.shape)}"
+                print(f"Loaded master B_full from {B_full_path}", flush=True)
+            else:
+                g = torch.Generator().manual_seed(seed_B)
+                B_full = torch.empty(N, args.B_full_dim).uniform_(-r, r, generator=g)
+                np.save(B_full_path, B_full.numpy())
+                print(f"Generated and saved master B_full -> {B_full_path}", flush=True)
+            shared_B = B_full[:, :args.M].clone()
+            np.save(os.path.join(OUT_DIR, f"shared_B_{args.tag}.npy"), shared_B.numpy())
+            print(f"Shared B (sliced from B_full): shape={tuple(shared_B.shape)}  "
+                  f"frozen={args.freeze_B}  ||B||_F={float(shared_B.norm()):.3f}", flush=True)
+        else:
+            g = torch.Generator().manual_seed(seed_B)
+            r = 1.0 / math.sqrt(N)
+            shared_B = torch.empty(N, args.M).uniform_(-r, r, generator=g)
+            np.save(os.path.join(OUT_DIR, f"shared_B_{args.tag}.npy"),
+                    shared_B.numpy())
+            print(f"Shared B: shape={tuple(shared_B.shape)}  frozen={args.freeze_B}  "
+                  f"||B||_F={float(shared_B.norm()):.3f}", flush=True)
 
     summary_path = os.path.join(OUT_DIR, f"summary_{args.tag}.json")
     # Resume support: if a summary exists for this tag, preserve its per-P
@@ -373,6 +410,8 @@ def main():
         "freeze_B": bool(args.freeze_B),
         "alpha": float(args.alpha),
         "n_interleave": int(args.n_interleave),
+        "no_bias_Q": bool(args.no_bias_Q),
+        "B_full_dim": int(args.B_full_dim),
         "per_P": dict(preserved_per_P),
     }
 
@@ -395,6 +434,7 @@ def main():
             num_epochs=args.epochs, device=DEVICE, tag=f"P={P}/ortho",
             B_shared=shared_B, freeze_B=args.freeze_B,
             alpha=args.alpha, n_interleave=args.n_interleave,
+            no_bias_Q=args.no_bias_Q,
         )
         dt_ortho = time.time() - t0
 
