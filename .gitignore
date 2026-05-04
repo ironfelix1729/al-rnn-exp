@@ -27,10 +27,13 @@ results_p_sweep/run_M_sweep_driver.log
 results_p_sweep/summary_M5.json
 results_p_sweep/summary_M10.json
 
-# seedrun_v2: tagged result arrays + summaries are tracked, logs are not
+# seedrun_v2: tagged result arrays + summaries are tracked, logs and per-cell
+# Q_dataset / shared_B duplicates are not.
 results_seedrun_v2/run_*.log
 results_seedrun_v2/driver.log
 results_seedrun_v2/*.pt
 results_seedrun_v2/*.npz
+results_seedrun_v2/*.npy
 !results_seedrun_v2/*_arrays.npz
 !results_seedrun_v2/*.pt
+!results_seedrun_v2/shared_B_full_dim*.npy
