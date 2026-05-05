@@ -1756,3 +1756,8 @@ Shared B (sliced from B_full): shape=(3, 9)  frozen=True  ||B||_F=1.634
 [skip] M5_s2 already complete
 [skip] M8_s2 already complete
 ================ M=9 seed=2  P=2 3 4 5 6 ================
+Loaded master B_full from /home/user/al-rnn-exp/results_seedrun_v2/shared_B_full_dim20_seed42.npy
+Shared B (sliced from B_full): shape=(3, 9)  frozen=True  ||B||_F=1.634
+
+================  P = 2  ================
+[P=2/orig] epoch    0/1000  loss=0.963837  elapsed=2.3s
