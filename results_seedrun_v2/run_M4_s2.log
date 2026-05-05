@@ -1,0 +1,6 @@
+================ M=4 seed=2  P=2 3 4 ================
+Loaded master B_full from /home/user/al-rnn-exp/results_seedrun_v2/shared_B_full_dim20_seed42.npy
+Shared B (sliced from B_full): shape=(3, 4)  frozen=True  ||B||_F=1.172
+
+================  P = 2  ================
+[P=2/orig] epoch    0/1000  loss=0.929240  elapsed=0.3s
