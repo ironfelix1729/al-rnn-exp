@@ -1,0 +1,53 @@
+================ M=3 seed=0  P=2 3 ================
+Generated and saved master B_full -> /home/user/al-rnn-exp/results_seedrun_v2/shared_B_full_dim20_seed42.npy
+Shared B (sliced from B_full): shape=(3, 3)  frozen=True  ||B||_F=0.825
+
+================  P = 2  ================
+[P=2/orig] epoch    0/1000  loss=0.919264  elapsed=0.8s
+[P=2/orig] epoch  100/1000  loss=0.173073  elapsed=74.6s
+[P=2/orig] epoch  200/1000  loss=0.173303  elapsed=146.2s
+[P=2/orig] epoch  300/1000  loss=0.169836  elapsed=217.9s
+[P=2/orig] epoch  400/1000  loss=0.175012  elapsed=290.3s
+[P=2/orig] epoch  500/1000  loss=0.172354  elapsed=363.2s
+[P=2/orig] epoch  600/1000  loss=0.171291  elapsed=435.1s
+[P=2/orig] epoch  700/1000  loss=0.170132  elapsed=508.1s
+[P=2/orig] epoch  800/1000  loss=0.172942  elapsed=580.3s
+[P=2/orig] epoch  900/1000  loss=0.171995  elapsed=652.8s
+[P=2/orig] epoch  999/1000  loss=0.172992  elapsed=724.8s
+[P=2/ortho] epoch    0/1000  loss=0.488726  elapsed=0.8s
+[P=2/ortho] epoch  100/1000  loss=0.077808  elapsed=86.1s
+[P=2/ortho] epoch  200/1000  loss=0.075992  elapsed=169.2s
+[P=2/ortho] epoch  300/1000  loss=0.075892  elapsed=256.8s
+[P=2/ortho] epoch  400/1000  loss=0.077113  elapsed=350.7s
+[P=2/ortho] epoch  500/1000  loss=0.073470  elapsed=438.8s
+[P=2/ortho] epoch  600/1000  loss=0.074760  elapsed=524.8s
+[P=2/ortho] epoch  700/1000  loss=0.076141  elapsed=609.6s
+[P=2/ortho] epoch  800/1000  loss=0.075015  elapsed=702.3s
+[P=2/ortho] epoch  900/1000  loss=0.072556  elapsed=801.3s
+[P=2/ortho] epoch  999/1000  loss=0.074579  elapsed=903.2s
+
+================  P = 3  ================
+[P=3/orig] epoch    0/1000  loss=0.816468  elapsed=0.7s
+[P=3/orig] epoch  100/1000  loss=0.096683  elapsed=81.2s
+[P=3/orig] epoch  200/1000  loss=0.092219  elapsed=164.8s
+[P=3/orig] epoch  300/1000  loss=0.092689  elapsed=244.6s
+[P=3/orig] epoch  400/1000  loss=0.091094  elapsed=326.4s
+[P=3/orig] epoch  500/1000  loss=0.091960  elapsed=406.8s
+[P=3/orig] epoch  600/1000  loss=0.090828  elapsed=490.7s
+[P=3/orig] epoch  700/1000  loss=0.088334  elapsed=573.3s
+[P=3/orig] epoch  800/1000  loss=0.090153  elapsed=657.5s
+[P=3/orig] epoch  900/1000  loss=0.091070  elapsed=741.1s
+[P=3/orig] epoch  999/1000  loss=0.088982  elapsed=826.5s
+[P=3/ortho] epoch    0/1000  loss=0.710862  elapsed=1.1s
+[P=3/ortho] epoch  100/1000  loss=0.064729  elapsed=91.0s
+[P=3/ortho] epoch  200/1000  loss=0.065637  elapsed=178.2s
+[P=3/ortho] epoch  300/1000  loss=0.063201  elapsed=264.1s
+[P=3/ortho] epoch  400/1000  loss=0.064609  elapsed=345.9s
+[P=3/ortho] epoch  500/1000  loss=0.064999  elapsed=429.4s
+[P=3/ortho] epoch  600/1000  loss=0.064611  elapsed=514.2s
+[P=3/ortho] epoch  700/1000  loss=0.064535  elapsed=603.4s
+[P=3/ortho] epoch  800/1000  loss=0.064391  elapsed=693.3s
+[P=3/ortho] epoch  900/1000  loss=0.064909  elapsed=777.7s
+[P=3/ortho] epoch  999/1000  loss=0.063941  elapsed=860.0s
+
+All done in 55.3 min
