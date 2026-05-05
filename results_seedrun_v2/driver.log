@@ -1559,3 +1559,16 @@ Shared B (sliced from B_full): shape=(3, 8)  frozen=True  ||B||_F=1.523
 [P=2/orig] epoch  900/1000  loss=0.034374  elapsed=732.8s
 [P=2/orig] epoch  999/1000  loss=0.035021  elapsed=812.4s
 [P=2/ortho] epoch    0/1000  loss=0.971208  elapsed=0.9s
+[P=2/ortho] epoch  100/1000  loss=0.036567  elapsed=94.3s
+[P=2/ortho] epoch  200/1000  loss=0.033527  elapsed=187.2s
+[P=2/ortho] epoch  300/1000  loss=0.032384  elapsed=280.0s
+[P=2/ortho] epoch  400/1000  loss=0.032345  elapsed=371.5s
+[P=2/ortho] epoch  500/1000  loss=0.031535  elapsed=462.8s
+[P=2/ortho] epoch  600/1000  loss=0.031733  elapsed=554.3s
+[P=2/ortho] epoch  700/1000  loss=0.031259  elapsed=646.6s
+[P=2/ortho] epoch  800/1000  loss=0.031729  elapsed=739.2s
+[P=2/ortho] epoch  900/1000  loss=0.031570  elapsed=833.4s
+[P=2/ortho] epoch  999/1000  loss=0.031689  elapsed=923.8s
+
+================  P = 3  ================
+[P=3/orig] epoch    0/1000  loss=0.923161  elapsed=0.8s
