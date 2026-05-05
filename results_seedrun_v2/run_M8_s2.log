@@ -1,0 +1,18 @@
+================ M=8 seed=2  P=2 3 4 5 6 ================
+Loaded master B_full from /home/user/al-rnn-exp/results_seedrun_v2/shared_B_full_dim20_seed42.npy
+Shared B (sliced from B_full): shape=(3, 8)  frozen=True  ||B||_F=1.523
+
+================  P = 2  ================
+[P=2/orig] epoch    0/1000  loss=0.964923  elapsed=0.3s
+[P=2/orig] epoch  100/1000  loss=0.041039  elapsed=34.7s
+[P=2/orig] epoch  200/1000  loss=0.036076  elapsed=69.2s
+[P=2/orig] epoch  300/1000  loss=0.035969  elapsed=102.9s
+[P=2/orig] epoch  400/1000  loss=0.034371  elapsed=136.4s
+[P=2/orig] epoch  500/1000  loss=0.034540  elapsed=169.7s
+[P=2/orig] epoch  600/1000  loss=0.034561  elapsed=202.9s
+[P=2/orig] epoch  700/1000  loss=0.033442  elapsed=235.7s
+[P=2/orig] epoch  800/1000  loss=0.033328  elapsed=269.6s
+[P=2/orig] epoch  900/1000  loss=0.034374  elapsed=303.2s
+[P=2/orig] epoch  999/1000  loss=0.035021  elapsed=336.7s
+[P=2/ortho] epoch    0/1000  loss=0.971208  elapsed=0.4s
+================ M=8 seed=2  P=2 3 4 5 6 ================
